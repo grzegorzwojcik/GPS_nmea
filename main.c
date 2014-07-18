@@ -13,7 +13,7 @@ int main(void)
 	GPS_USARTinit();
 
 	STM_EVAL_LEDInit(LED6);
-	flag = 0;
+	flag = 1;
 
 	//char *check_string = "$GPGSV";
 
