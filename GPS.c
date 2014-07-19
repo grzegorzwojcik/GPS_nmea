@@ -92,7 +92,7 @@ void GPS_ClearDataFrame(unsigned char *string, uint8_t length){
 }
 
 
-void GPS_ParseGGA(unsigned char *DataFrame){
+void GPS_ParseFloatGGA(unsigned char *DataFrame){
 	static uint8_t i = 0;
 	static uint8_t j = 0;
 	char tmp_string[] = {0};
@@ -122,7 +122,38 @@ void GPS_ParseGGA(unsigned char *DataFrame){
 	}
 }
 
+float GPS_ParseGGA(uint8_t CommaNumber){
+	uint8_t i = 0;					// Zmienna pomocnicza
+	uint8_t j = 0;					// Zmienna pomocnicza
+	char temp_string[] = {0};		// Tablica pomocnicza
+	static float ParsedData = 0;
 
+	/* Ramka gotowa do analizy */
+	if( GPS_flag == 1 ){
+		if( (GPS_DataFrame[0] == 'G') && (GPS_DataFrame[1] == 'G') && (GPS_DataFrame[2] == 'A') ){
+
+			for( i = 0, j = 0; i < 80; i++){
+				uint8_t comma_counter = 0;
+				if( GPS_DataFrame[i] == ','){
+					comma_counter++;
+				}
+				/* Collecting data between commas: CommaNumber and CommaNumber +1*/
+				if( (comma_counter >= CommaNumber) && (comma_counter < (CommaNumber + 1)) ){
+					temp_string[j] = GPS_DataFrame[j];
+					j++;
+				}
+				/* Abort for function when collecting is done */
+				if( comma_counter >= CommaNumber + 1)
+					break;
+			}
+			ParsedData = atoff(temp_string);
+			GPS_flag = 0;
+		}
+
+	}
+
+	return ParsedData;
+}
 
 
 

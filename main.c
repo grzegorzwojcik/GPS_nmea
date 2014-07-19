@@ -26,7 +26,8 @@ int main(void)
 		//receive_frame("$GPGSV");
 		//receive_frame("$GPRMC");
 		//receive_frame("$GPVTG");
-		GPS_ParseGGA(GPS_DataFrame);
+		//GPS_ParseGGA(GPS_DataFrame);
+		test = GPS_ParseGGA(2);
 
 
 	}
