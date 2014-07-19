@@ -15,7 +15,7 @@ void GPS_GPIOinit(void){
 	/* STM32F407VGT6
 	 * USART1:
 	 * TX: PB6
-	 * RX:PB7 */
+	 * RX: PB7 */
 
 	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOB, ENABLE );	//Enabling peripherial clock for PORTB
 
@@ -37,7 +37,7 @@ void GPS_USARTinit(void){
 	/* STM32F407VGT6
 	 * USART1:
 	 * TX: PB6
-	 * RX:PB7 */
+	 * RX: PB7 */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); 	// Enabling peripherial clock for USART1
 															// Note that only USART1 and USART6 are connected
 															// to APB2
@@ -71,26 +71,60 @@ void GPS_VariablesInit(void){
 	GPS_flag = 0;
 	GPS_ClearDataFrame(GPS_DataFrame, 100);
 
-	GPS GPS_Variables;
-	GPS_Variables.Altitude = 0;
-	GPS_Variables.Latitude = 0;
-	GPS_Variables.Longitude = 0;
-	GPS_Variables.Speed = 0;
-	GPS_Variables.Time_hours = 0;
-	GPS_Variables.Time_minutes = 0;
-	GPS_Variables.Time_seconds = 0;
+	GPS GPS_AAT;	/* AAT stands for Automatic Antenna Tracker */
+	GPS_AAT.Altitude = 0;
+	GPS_AAT.Latitude = 0;
+	GPS_AAT.Longitude = 0;
+	GPS_AAT.Speed = 0;
+	GPS_AAT.Time_hours = 0;
+	GPS_AAT.Time_minutes = 0;
+	GPS_AAT.Time_seconds = 0;
 }
 
 
 								/*** Functions ***/
-void GPS_ClearDataFrame(char *string, uint8_t length){
+void GPS_ClearDataFrame(unsigned char *string, uint8_t length){
 	static uint8_t i = 0;
 	for( i = 0; i < length; i++){
 		string[i] = 0;
 	}
 }
 
-/* Interrupt Request Handler (IRQ) for ALL USART1 interrupts */
+
+void GPS_ParseGGA(){
+	static uint8_t i = 0;
+	static unsigned char tmp[80] = {0};
+	static float result = 0;
+
+	if( GPS_flag == 1 ){	/* DataFrame is ready to parse */
+		if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+			for( i = 0; i < 80; i++ ){
+				static uint8_t counter = 0;
+				if( GPS_DataFrame[i] == ',' )
+					counter++;
+				if( counter >= 2 && counter <=3)
+
+			}
+
+
+
+
+
+
+		}
+	else
+		GPS_flag = 0;		/* Allow to receive next DataFrame */
+
+	}
+}
+
+
+
+
+
+
+				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
 void USART1_IRQHandler(void){
 
 	if( USART_GetITStatus(USART1, USART_IT_RXNE) ){
@@ -107,7 +141,7 @@ void USART1_IRQHandler(void){
 			if( t != '$' ){
 				GPS_DataFrame[cnt] = t;
 				cnt++;
-				if( t == 0x0A ){
+				if( t == 0x0D ){
 					//cnt = 0;
 					GPS_flag = 1;
 				}

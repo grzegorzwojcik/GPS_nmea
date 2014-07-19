@@ -16,10 +16,11 @@ volatile uint8_t GPS_flag;						//GPS_flag is initialized with 0 during GPS_Vari
 void GPS_GPIOinit(void);
 void GPS_USARTinit(void);
 void GPS_VariablesInit(void);
-void GPS_ClearDataFrame(char *s, uint8_t length);
-void GPS_ParseFrame(char *Frame)
 
 /*** Functions ***/
+void GPS_ClearDataFrame(unsigned char *s, uint8_t length);
+void GPS_ParseGGA();
+
 
 typedef struct{
 		uint16_t Speed; 		/* Speed over ground */
