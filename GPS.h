@@ -11,6 +11,7 @@
 /*** Volatile variables ***/
 volatile unsigned char GPS_DataFrame[100];		//Should start with '$', end with 0x0A
 volatile uint8_t GPS_flag;						//GPS_flag is initialized with 0 during GPS_VariablesInit() execution
+volatile float test;
 
 /*** Initialization functions ***/
 void GPS_GPIOinit(void);
@@ -19,7 +20,7 @@ void GPS_VariablesInit(void);
 
 /*** Functions ***/
 void GPS_ClearDataFrame(unsigned char *s, uint8_t length);
-void GPS_ParseGGA();
+void GPS_ParseFloatGGA(unsigned char *DataFrame);
 
 
 typedef struct{

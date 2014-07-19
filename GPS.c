@@ -6,6 +6,7 @@
  */
 
 #include <stddef.h>
+#include <stdlib.h>
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include "GPS.h"
@@ -91,31 +92,33 @@ void GPS_ClearDataFrame(unsigned char *string, uint8_t length){
 }
 
 
-void GPS_ParseGGA(){
+void GPS_ParseGGA(unsigned char *DataFrame){
 	static uint8_t i = 0;
-	static unsigned char tmp[80] = {0};
-	static float result = 0;
+	static uint8_t j = 0;
+	char tmp_string[] = {0};
+	//static float result = 0;
 
 	if( GPS_flag == 1 ){	/* DataFrame is ready to parse */
-		if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+		if( (DataFrame[3] == 'G') && (DataFrame[4] == 'G') && (DataFrame[5] == 'A') ){
 
-			for( i = 0; i < 80; i++ ){
+			for( i = 0,j = 0; i < 80; i++ ){
 				static uint8_t counter = 0;
-				if( GPS_DataFrame[i] == ',' )
+				if( DataFrame[i] == ',' )
 					counter++;
-				if( counter >= 2 && counter <=3)
-
+				if( DataFrame[i] != ',' ){
+					if( counter >= 1 && counter <=2){
+						tmp_string[j] = DataFrame[i];
+						j++;
+					}
+				}
+				if( counter >= 2 )
+					break;
 			}
-
-
-
-
-
-
+			test = atoff(tmp_string);
+			GPS_flag = 0;
 		}
 	else
 		GPS_flag = 0;		/* Allow to receive next DataFrame */
-
 	}
 }
 

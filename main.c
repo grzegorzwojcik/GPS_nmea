@@ -3,6 +3,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include "functions.h"
+#include <stdlib.h>
 #include "gps.h"
 
 
@@ -14,6 +15,7 @@ int main(void)
 
 	STM_EVAL_LEDInit(LED6);
 	flag = 0;
+	test = 0;
 
 	//char *check_string = "$GPGSV";
 
@@ -24,6 +26,8 @@ int main(void)
 		//receive_frame("$GPGSV");
 		//receive_frame("$GPRMC");
 		//receive_frame("$GPVTG");
+		GPS_ParseGGA(GPS_DataFrame);
+		//test = atoff("4124.8963");
 
 	}
 }
