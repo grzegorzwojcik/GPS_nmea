@@ -106,12 +106,12 @@ void GPS_ParseGGA(unsigned char *DataFrame){
 				if( DataFrame[i] == ',' )
 					counter++;
 				if( DataFrame[i] != ',' ){
-					if( counter >= 1 && counter <=2){
+					if( counter >= 2 && counter <=3){
 						tmp_string[j] = DataFrame[i];
 						j++;
 					}
 				}
-				if( counter >= 2 )
+				if( counter >= 3 )
 					break;
 			}
 			test = atoff(tmp_string);
@@ -141,11 +141,11 @@ void USART1_IRQHandler(void){
 				GPS_DataFrame[cnt] = t;
 				cnt++;
 			}
-			if( t != '$' ){
+			if( (t != '$') && (GPS_DataFrame[0] == '$') ){
 				GPS_DataFrame[cnt] = t;
 				cnt++;
 				if( t == 0x0D ){
-					//cnt = 0;
+					cnt = 0;
 					GPS_flag = 1;
 				}
 			}

@@ -27,7 +27,7 @@ int main(void)
 		//receive_frame("$GPRMC");
 		//receive_frame("$GPVTG");
 		GPS_ParseGGA(GPS_DataFrame);
-		//test = atoff("4124.8963");
+
 
 	}
 }
