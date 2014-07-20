@@ -39,6 +39,7 @@ float GPS_ParseTime();
 float GPS_ParseLatitude();
 float GPS_ParseLongitude();
 float GPS_ParseAltitude();
+void GPS_ParseGGA(GPS* GPS_Structure);
 
 
 

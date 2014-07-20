@@ -202,6 +202,50 @@ float GPS_ParseAltitude(){
 }
 
 
+void GPS_ParseGGA(GPS* GPS_Structure){
+
+	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+		static uint8_t i = 0;
+		static uint8_t j = 0;
+		static uint8_t k = 0;
+		static uint8_t l = 0;
+		char LatitudeStr[20] = {0};		// Temporary char array
+		char LongitudeStr[20] = {0};		// Temporary char array
+		char AltitudeStr[20] = {0};		// Temporary char array
+		uint8_t CommaCounter = 0;
+
+		for( i =0, j =0, k=0, l=0 ; i < 100; i++ ){
+			if( GPS_DataFrame[i] == ',' )
+				CommaCounter++;
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 2)){
+				LatitudeStr[j] = GPS_DataFrame[i];
+				j++;
+			}
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 4) ){
+				LongitudeStr[k] = GPS_DataFrame[i];
+				k++;
+			}
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 9) ){
+				AltitudeStr[l] = GPS_DataFrame[i];
+				l++;
+			}
+			if( CommaCounter == 3 ){
+				GPS_Structure->Latitude = atoff(LatitudeStr);
+			}
+			if( CommaCounter == 5 ){
+				GPS_Structure->Longitude = atoff(LongitudeStr);
+			}
+			if( CommaCounter >= 10){
+				GPS_Structure->Altitude = atoff(AltitudeStr);
+				break;
+			}
+		}
+	}
+}
+
+
+
 				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
 void USART1_IRQHandler(void){
 

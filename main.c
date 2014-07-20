@@ -15,7 +15,9 @@ int main(void)
 	GPS_GPIOinit();
 	GPS_USARTinit();
 	STM_EVAL_LEDInit(LED6);
+	/* Initialization -structures */
 	GPS GPS_AAT = GPS_StructInit();
+	GPS GPS_UAV = GPS_StructInit();
 
 	static float Time = 0;
 	while(1)
@@ -23,9 +25,10 @@ int main(void)
 		//GPS_ParseGGA(GPS_DataFrame);
 		if( GPS_flag == 1 ){
 			Time = GPS_ParseTime();
-			GPS_AAT.Latitude = GPS_ParseLatitude();
-			GPS_AAT.Longitude = GPS_ParseLongitude();
-			GPS_AAT.Altitude =  GPS_ParseAltitude();
+			//GPS_AAT.Latitude = GPS_ParseLatitude();
+			//GPS_AAT.Longitude = GPS_ParseLongitude();
+			//GPS_AAT.Altitude =  GPS_ParseAltitude();
+			GPS_ParseGGA(&GPS_AAT);
 			GPS_ClearDataFrame();
 			GPS_flag = 0;
 		}
