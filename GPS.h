@@ -19,7 +19,7 @@ void GPS_VariablesInit(void);
 
 /*** Functions ***/
 void GPS_ClearDataFrame(void);
-float GPS_ParseFloatGGA(uint8_t CommaNumber);
+float GPS_ParseGGA(uint8_t CommaNumber);
 
 
 typedef struct{

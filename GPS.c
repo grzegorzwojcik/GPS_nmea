@@ -72,7 +72,7 @@ void GPS_VariablesInit(void){
 	GPS_flag = 0;
 	GPS_ClearDataFrame();
 
-	GPS GPS_AAT;	/* AAT stands for Automatic Antenna Tracker */
+	static GPS GPS_AAT;	/* AAT stands for Automatic Antenna Tracker */
 	GPS_AAT.Altitude = 0;
 	GPS_AAT.Latitude = 0;
 	GPS_AAT.Longitude = 0;
@@ -92,39 +92,34 @@ void GPS_ClearDataFrame(){
 }
 
 
-float GPS_ParseFloatGGA(uint8_t CommaNumber){
+float GPS_ParseGGA(uint8_t CommaNumber){
 	static float ParsedData = 0;
 
-	if( GPS_flag == 1 ){
-		if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
 
-			static uint8_t i = 0;
-			static uint8_t j = 0;
-			char TempString[20] = {0};		// Temporary char array
-			uint8_t CommaCounter = 0;
+		static uint8_t i = 0;
+		static uint8_t j = 0;
+		char TempString[20] = {0};		// Temporary char array
+		uint8_t CommaCounter = 0;
 
-			for( i = 0, j = 0; i < 100; i++ ){
-				if( GPS_DataFrame[i] == ',' )
-					CommaCounter++;
-				if( (GPS_DataFrame[i] != ',') && (CommaCounter >= CommaNumber) ){
-					TempString[j] = GPS_DataFrame[i];
-					j++;
-				}
-				if( CommaCounter >= (CommaNumber + 1) ){
-					break;
-				}
+		for( i = 0, j = 0; i < 100; i++ ){
+			if( GPS_DataFrame[i] == ',' )
+				CommaCounter++;
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= CommaNumber) ){
+				TempString[j] = GPS_DataFrame[i];
+				j++;
 			}
+			if( CommaCounter >= (CommaNumber + 1) ){
+				break;
+			}
+		}
 
-			/* Clear DataFrame */
-			ParsedData = atoff(TempString);
-			GPS_ClearDataFrame();
-			GPS_flag = 0;
-		}
-		else{
-			/* Clear DataFrame */
-			GPS_ClearDataFrame();
-			GPS_flag = 0;
-		}
+		/* Clear DataFrame */
+		ParsedData = atoff(TempString);
+	}
+	else{
+		/* Clear DataFrame */
+		GPS_ClearDataFrame();
 	}
 	return ParsedData;
 }

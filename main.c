@@ -12,15 +12,26 @@ int main(void)
 	SysTick_Config( SystemCoreClock / 1000 );
 	GPS_GPIOinit();
 	GPS_USARTinit();
+	GPS_VariablesInit();
 
 	STM_EVAL_LEDInit(LED6);
-	flag = 0;
-	test = 0;
+	static float Latitude = 0;
+	static float Longitude = 0;
+	static float Altitude = 0;
+	static float Time = 0;
 
 	while(1)
 	{
 		//GPS_ParseGGA(GPS_DataFrame);
-		GPS_ParseFloatGGA(1);
+		if( GPS_flag == 1 ){
+			Time = GPS_ParseGGA(1);
+			Latitude = GPS_ParseGGA(2);
+			Longitude = GPS_ParseGGA(4);
+			Altitude =  GPS_ParseGGA(7);
+			GPS_ClearDataFrame();
+			GPS_flag = 0;
+		}
+
 	}
 }
 
