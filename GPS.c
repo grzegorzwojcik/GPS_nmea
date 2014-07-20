@@ -70,7 +70,7 @@ void GPS_USARTinit(void){
 
 void GPS_VariablesInit(void){
 	GPS_flag = 0;
-	GPS_ClearDataFrame(GPS_DataFrame, 100);
+	GPS_ClearDataFrame();
 
 	GPS GPS_AAT;	/* AAT stands for Automatic Antenna Tracker */
 	GPS_AAT.Altitude = 0;
@@ -84,72 +84,85 @@ void GPS_VariablesInit(void){
 
 
 								/*** Functions ***/
-void GPS_ClearDataFrame(unsigned char *string, uint8_t length){
+void GPS_ClearDataFrame(){
 	static uint8_t i = 0;
-	for( i = 0; i < length; i++){
-		string[i] = 0;
+	for( i = 0; i < 100; i++){
+		GPS_DataFrame[i] = 0;
 	}
 }
 
 
-void GPS_ParseFloatGGA(unsigned char *DataFrame){
-	static uint8_t i = 0;
-	static uint8_t j = 0;
-	char tmp_string[] = {0};
-	//static float result = 0;
+void GPS_ParseFloatGGA(){
 
-	if( GPS_flag == 1 ){	/* DataFrame is ready to parse */
-		if( (DataFrame[3] == 'G') && (DataFrame[4] == 'G') && (DataFrame[5] == 'A') ){
 
-			for( i = 0,j = 0; i < 80; i++ ){
-				static uint8_t counter = 0;
-				if( DataFrame[i] == ',' )
-					counter++;
-				if( DataFrame[i] != ',' ){
-					if( counter >= 2 && counter <=3){
-						tmp_string[j] = DataFrame[i];
-						j++;
-					}
+	if( GPS_flag == 1 ){
+		if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+			static uint8_t i = 0;
+			static uint8_t j = 0;
+			char TempString[20] = {0};		// Temporary char array
+			uint8_t CommaCounter = 0;
+
+			for( i = 0, j = 0; i < 100; i++ ){
+				if( GPS_DataFrame[i] == ',' )
+					CommaCounter++;
+				if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 1) ){
+					TempString[j] = GPS_DataFrame[i];
+					j++;
 				}
-				if( counter >= 3 )
+				if( CommaCounter >= 2 ){
 					break;
+				}
 			}
-			test = atoff(tmp_string);
+
+			/* Clear DataFrame */
+			GPS_ClearDataFrame();
 			GPS_flag = 0;
 		}
-	else
-		GPS_flag = 0;		/* Allow to receive next DataFrame */
+		else{
+			/* Clear DataFrame */
+			GPS_ClearDataFrame();
+			GPS_flag = 0;
+		}
+
 	}
 }
 
 float GPS_ParseGGA(uint8_t CommaNumber){
-	uint8_t i = 0;					// Zmienna pomocnicza
-	uint8_t j = 0;					// Zmienna pomocnicza
-	char temp_string[] = {0};		// Tablica pomocnicza
 	static float ParsedData = 0;
 
 	/* Ramka gotowa do analizy */
 	if( GPS_flag == 1 ){
-		if( (GPS_DataFrame[0] == 'G') && (GPS_DataFrame[1] == 'G') && (GPS_DataFrame[2] == 'A') ){
+		uint8_t i = 0;					// Zmienna pomocnicza
+		uint8_t j = 0;					// Zmienna pomocnicza
+		char temp_string[] = {0};		// Tablica pomocnicza
+
+		if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+			static uint8_t comma_counter = 0;
 
 			for( i = 0, j = 0; i < 80; i++){
-				uint8_t comma_counter = 0;
-				if( GPS_DataFrame[i] == ','){
+				if( GPS_DataFrame[i] == ',')
 					comma_counter++;
-				}
+
 				/* Collecting data between commas: CommaNumber and CommaNumber +1*/
-				if( (comma_counter >= CommaNumber) && (comma_counter < (CommaNumber + 1)) ){
-					temp_string[j] = GPS_DataFrame[j];
+				if( (GPS_DataFrame[i] != ',') && (comma_counter >= CommaNumber) ){
+					temp_string[j] = GPS_DataFrame[i];
+					test_string[j] = GPS_DataFrame[i];
+					test = i;
 					j++;
 				}
 				/* Abort for function when collecting is done */
-				if( comma_counter >= CommaNumber + 1)
+				if( comma_counter >= 2 ){
+					comma_counter = 0;
 					break;
+				}
 			}
-			ParsedData = atoff(temp_string);
 			GPS_flag = 0;
-		}
+			//ParsedData = atoff(temp_string);
 
+		}
+		else
+			GPS_flag = 0;
 	}
 
 	return ParsedData;

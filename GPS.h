@@ -10,8 +10,9 @@
 
 /*** Volatile variables ***/
 volatile char GPS_DataFrame[100];		//Should start with '$', end with 0x0A
-volatile uint8_t GPS_flag;						//GPS_flag is initialized with 0 during GPS_VariablesInit() execution
+volatile uint8_t GPS_flag;				//GPS_flag is initialized with 0 during GPS_VariablesInit() execution
 volatile float test;
+volatile char test_string[30];
 
 /*** Initialization functions ***/
 void GPS_GPIOinit(void);
@@ -19,8 +20,8 @@ void GPS_USARTinit(void);
 void GPS_VariablesInit(void);
 
 /*** Functions ***/
-void GPS_ClearDataFrame(unsigned char *s, uint8_t length);
-void GPS_ParseFloatGGA(unsigned char *DataFrame);
+void GPS_ClearDataFrame(void);
+void GPS_ParseFloatGGA();
 float GPS_ParseGGA(uint8_t CommaNumber);
 
 
