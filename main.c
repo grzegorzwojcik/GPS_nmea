@@ -20,7 +20,7 @@ int main(void)
 	while(1)
 	{
 		//GPS_ParseGGA(GPS_DataFrame);
-		GPS_ParseFloatGGA();
+		GPS_ParseFloatGGA(1);
 	}
 }
 
