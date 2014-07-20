@@ -25,9 +25,6 @@ int main(void)
 		//GPS_ParseGGA(GPS_DataFrame);
 		if( GPS_flag == 1 ){
 			Time = GPS_ParseTime();
-			//GPS_AAT.Latitude = GPS_ParseLatitude();
-			//GPS_AAT.Longitude = GPS_ParseLongitude();
-			//GPS_AAT.Altitude =  GPS_ParseAltitude();
 			GPS_ParseGGA(&GPS_AAT);
 			GPS_ClearDataFrame();
 			GPS_flag = 0;

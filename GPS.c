@@ -80,7 +80,6 @@ GPS GPS_StructInit(){
 	GPS_Struct.Altitude = 0;
 	GPS_Struct.Latitude = 0;
 	GPS_Struct.Longitude = 0;
-	GPS_Struct.Speed = 0;
 	GPS_Struct.Time_hours = 0;
 	GPS_Struct.Time_minutes = 0;
 	GPS_Struct.Time_seconds = 0;
@@ -206,18 +205,26 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 
 	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
 
-		static uint8_t i = 0;
-		static uint8_t j = 0;
-		static uint8_t k = 0;
-		static uint8_t l = 0;
-		char LatitudeStr[20] = {0};		// Temporary char array
-		char LongitudeStr[20] = {0};		// Temporary char array
-		char AltitudeStr[20] = {0};		// Temporary char array
-		uint8_t CommaCounter = 0;
+		static uint8_t i 	= 0;
+		static uint8_t j	= 0;
+		static uint8_t k	= 0;
+		static uint8_t l 	= 0;
+		static uint8_t m 	= 0;
+		uint8_t CommaCounter= 0;
 
-		for( i =0, j =0, k=0, l=0 ; i < 100; i++ ){
+		char TimeStr[20] = {0};			// Temporary char array
+		char LatitudeStr[20]	= {0};		// Temporary char array
+		char LongitudeStr[20]	= {0};	// Temporary char array
+		char AltitudeStr[20]	= {0};		// Temporary char array
+
+
+		for( i =0, j =0, k=0, l =0, m =0 ; i < 100; i++ ){
 			if( GPS_DataFrame[i] == ',' )
 				CommaCounter++;
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 1)){
+				TimeStr[m] = GPS_DataFrame[i];
+				m++;
+			}
 			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 2)){
 				LatitudeStr[j] = GPS_DataFrame[i];
 				j++;
@@ -229,6 +236,16 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 9) ){
 				AltitudeStr[l] = GPS_DataFrame[i];
 				l++;
+			}
+			if( CommaCounter == 2 ){
+				char TmpStr[2] = {TimeStr[0], TimeStr[1]};
+				GPS_Structure->Time_hours = atoi(TmpStr);
+				TmpStr[0] = TimeStr[2];
+				TmpStr[1] = TimeStr[3];
+				GPS_Structure->Time_minutes = atoi(TmpStr);
+				TmpStr[0] = TimeStr[4];
+				TmpStr[1] = TimeStr[5];
+				GPS_Structure->Time_seconds = atoi(TmpStr);
 			}
 			if( CommaCounter == 3 ){
 				GPS_Structure->Latitude = atoff(LatitudeStr);

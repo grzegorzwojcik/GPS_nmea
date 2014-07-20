@@ -16,7 +16,6 @@ volatile uint8_t GPS_flag;				//GPS_flag is initialized with 0 during GPS_Variab
 void GPS_GPIOinit(void);
 void GPS_USARTinit(void);
 typedef struct{
-		float Speed; 		/* Speed over ground */
 		float Latitude;		/* Szerokosc geograficzna */
 		float Longitude;	/* Dlugosc geograficzna */
 		float Altitude;		/* Above mean sea level [meters] */
