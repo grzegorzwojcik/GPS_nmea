@@ -68,18 +68,24 @@ void GPS_USARTinit(void){
 	USART_Cmd(USART1, ENABLE);	// Enabling the complete USART1 peripherial
 }
 
-void GPS_VariablesInit(void){
+
+GPS GPS_StructInit(){
+	/* Structure initialization */
+	/* THis function returns GPS structure with basic values, initializes GPS_flag with 0,
+	 * and initializes(clears) volatile GPS_DataFrame*/
 	GPS_flag = 0;
 	GPS_ClearDataFrame();
 
-	static GPS GPS_AAT;	/* AAT stands for Automatic Antenna Tracker */
-	GPS_AAT.Altitude = 0;
-	GPS_AAT.Latitude = 0;
-	GPS_AAT.Longitude = 0;
-	GPS_AAT.Speed = 0;
-	GPS_AAT.Time_hours = 0;
-	GPS_AAT.Time_minutes = 0;
-	GPS_AAT.Time_seconds = 0;
+	GPS GPS_Struct;
+	GPS_Struct.Altitude = 0;
+	GPS_Struct.Latitude = 0;
+	GPS_Struct.Longitude = 0;
+	GPS_Struct.Speed = 0;
+	GPS_Struct.Time_hours = 0;
+	GPS_Struct.Time_minutes = 0;
+	GPS_Struct.Time_seconds = 0;
+
+	return GPS_Struct;
 }
 
 
