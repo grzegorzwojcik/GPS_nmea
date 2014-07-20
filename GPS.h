@@ -19,7 +19,10 @@ void GPS_VariablesInit(void);
 
 /*** Functions ***/
 void GPS_ClearDataFrame(void);
-float GPS_ParseGGA(uint8_t CommaNumber);
+float GPS_ParseTime();
+float GPS_ParseLatitude();
+float GPS_ParseLongitude();
+float GPS_ParseAltitude();
 
 
 typedef struct{

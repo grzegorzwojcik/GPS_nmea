@@ -24,10 +24,10 @@ int main(void)
 	{
 		//GPS_ParseGGA(GPS_DataFrame);
 		if( GPS_flag == 1 ){
-			Time = GPS_ParseGGA(1);
-			Latitude = GPS_ParseGGA(2);
-			Longitude = GPS_ParseGGA(4);
-			Altitude =  GPS_ParseGGA(7);
+			Time = GPS_ParseTime();
+			Latitude = GPS_ParseLatitude();
+			Longitude = GPS_ParseLongitude();
+			Altitude =  GPS_ParseAltitude();
 			GPS_ClearDataFrame();
 			GPS_flag = 0;
 		}

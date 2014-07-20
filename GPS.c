@@ -91,8 +91,7 @@ void GPS_ClearDataFrame(){
 	}
 }
 
-
-float GPS_ParseGGA(uint8_t CommaNumber){
+float GPS_ParseTime(){
 	static float ParsedData = 0;
 
 	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
@@ -105,26 +104,96 @@ float GPS_ParseGGA(uint8_t CommaNumber){
 		for( i = 0, j = 0; i < 100; i++ ){
 			if( GPS_DataFrame[i] == ',' )
 				CommaCounter++;
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= CommaNumber) ){
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 1) ){
 				TempString[j] = GPS_DataFrame[i];
 				j++;
 			}
-			if( CommaCounter >= (CommaNumber + 1) ){
+			if( CommaCounter >= 2 ){
 				break;
 			}
 		}
-
-		/* Clear DataFrame */
-		ParsedData = atoff(TempString);
-	}
-	else{
-		/* Clear DataFrame */
-		GPS_ClearDataFrame();
+		ParsedData = atoff(TempString);	// ASCII to Float conversion
 	}
 	return ParsedData;
 }
 
+float GPS_ParseLatitude(){
+	static float ParsedData = 0;
 
+	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+		static uint8_t i = 0;
+		static uint8_t j = 0;
+		char TempString[20] = {0};		// Temporary char array
+		uint8_t CommaCounter = 0;
+
+		for( i = 0, j = 0; i < 100; i++ ){
+			if( GPS_DataFrame[i] == ',' )
+				CommaCounter++;
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 2) ){
+				TempString[j] = GPS_DataFrame[i];
+				j++;
+			}
+			if( CommaCounter >= 3 ){
+				break;
+			}
+		}
+		ParsedData = atoff(TempString);	// ASCII to Float conversion
+	}
+	return ParsedData;
+}
+
+float GPS_ParseLongitude(){
+	static float ParsedData = 0;
+
+	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+		static uint8_t i = 0;
+		static uint8_t j = 0;
+		char TempString[20] = {0};		// Temporary char array
+		uint8_t CommaCounter = 0;
+
+		for( i = 0, j = 0; i < 100; i++ ){
+			if( GPS_DataFrame[i] == ',' )
+				CommaCounter++;
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 4) ){
+				TempString[j] = GPS_DataFrame[i];
+				j++;
+			}
+			if( CommaCounter >= 5 ){
+				break;
+			}
+		}
+		ParsedData = atoff(TempString);	// ASCII to Float conversion
+	}
+	return ParsedData;
+}
+
+float GPS_ParseAltitude(){
+	static float ParsedData = 0;
+
+	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+		static uint8_t i = 0;
+		static uint8_t j = 0;
+		char TempString[20] = {0};		// Temporary char array
+		uint8_t CommaCounter = 0;
+
+		for( i = 0, j = 0; i < 100; i++ ){
+			if( GPS_DataFrame[i] == ',' )
+				CommaCounter++;
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 9) ){
+				TempString[j] = GPS_DataFrame[i];
+				j++;
+			}
+			if( CommaCounter >= 10 ){
+				break;
+			}
+		}
+		ParsedData = atoff(TempString);	// ASCII to Float conversion
+	}
+	return ParsedData;
+}
 
 
 				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
