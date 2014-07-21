@@ -106,57 +106,6 @@ void USART_puts(USART_TypeDef* USARTx, volatile char *s){
 	}
 }
 
-void receive_frame(const char *check_word){
-	if( (flag == 1) && (USART_GetFlagStatus(USART1, USART_FLAG_TC))) {
-		uint8_t i = 0;
-		uint8_t check = 0;
-		/* Check if desired string matches received one */
-		for( i = 0; i<=6; i++){
-			if( check_word[i] == received_string[i] )
-				check++;
-		}
-		/* Send DATA in case it does */
-		if( check == 6 ){
-			USART_puts(USART1, received_string);
-			flag = 0;
-		}
-		else
-			flag = 0;
-		/* Clear received_string */
-		for( i = 0; i <= 100; i++ ){
-			received_string[i] = 0;
-		}
-	}
-}
-
-// this is the interrupt request handler (IRQ) for ALL USART1 interrupts
-/*
- void USART1_IRQHandler(void){
-
-	if( USART_GetITStatus(USART1, USART_IT_RXNE) ){
-
-		static uint8_t cnt = 0; // this counter is used to determine the string length
-		char t = USART1->DR; // the character from the USART1 data register is saved in t
-
-		if( (flag == 0) ){
-			if( t == '$' ){
-				cnt = 0;
-				received_string[cnt] = t;
-				cnt++;
-			}
-			if( t != '$' ){
-				received_string[cnt] = t;
-				cnt++;
-				if( t == 0x0A ){
-					//cnt = 0;
-					flag = 1;
-				}
-			}
-		}
-	}
-}
- */
-
 
 
 

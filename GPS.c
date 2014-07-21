@@ -205,11 +205,11 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 
 	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
 
-		static uint8_t i 	= 0;
-		static uint8_t j	= 0;
-		static uint8_t k	= 0;
-		static uint8_t l 	= 0;
-		static uint8_t m 	= 0;
+		static uint8_t i 	= 0;	//GPS_DataFrame[i]
+		static uint8_t j	= 0;	//LatitudeStr[j]
+		static uint8_t k	= 0;	//LongitudeStr[k]
+		static uint8_t l 	= 0;	//AltitudeStr[l]
+		static uint8_t m 	= 0;	//TimeStr[m]
 		uint8_t CommaCounter= 0;
 
 		char TimeStr[20] = {0};			// Temporary char array

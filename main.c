@@ -14,17 +14,15 @@ int main(void)
 	/* Initialization functions */
 	GPS_GPIOinit();
 	GPS_USARTinit();
-	STM_EVAL_LEDInit(LED6);
+
 	/* Initialization -structures */
 	GPS GPS_AAT = GPS_StructInit();
 	GPS GPS_UAV = GPS_StructInit();
 
-	static float Time = 0;
 	while(1)
 	{
 		//GPS_ParseGGA(GPS_DataFrame);
 		if( GPS_flag == 1 ){
-			Time = GPS_ParseTime();
 			GPS_ParseGGA(&GPS_AAT);
 			GPS_ClearDataFrame();
 			GPS_flag = 0;
