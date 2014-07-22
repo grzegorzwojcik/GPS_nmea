@@ -8,6 +8,9 @@
 #ifndef GPS_H_
 #define GPS_H_
 
+#define PI 3.14159265				/* PI */
+#define Earth_Radius 6371.0			/* Mean Earth radius */
+
 /*** Volatile variables ***/
 volatile char GPS_DataFrame[100];		//Should start with '$', end with 0x0A
 volatile uint8_t GPS_flag;				//GPS_flag is initialized with 0 during GPS_VariablesInit() execution
@@ -16,14 +19,18 @@ volatile uint8_t GPS_flag;				//GPS_flag is initialized with 0 during GPS_Variab
 void GPS_GPIOinit(void);
 void GPS_USARTinit(void);
 typedef struct{
-		uint8_t Longitude_degrees;	/* Szerokosc geograficzna DMM [DegreesMinutesMinutes] */
-		uint8_t Latitude_degrees;	/* Dlugosc geograficzna DMM [DegreesMinutesMinutes] */
-		float Longitude_minutes;
-		float Latitude_minutes;
+
+		float Altitude;		/* Above mean sea level [meters] */
 
 		float Latitude;
+		uint8_t Latitude_degrees;
+		float Latitude_minutes;
+		float LatitudeUTM;
+
 		float Longitude;
-		float Altitude;		/* Above mean sea level [meters] */
+		uint8_t Longitude_degrees;
+		float Longitude_minutes;
+		float LongitudeUTM;
 
 		/* UTC Time */
 		uint8_t Time_hours;
@@ -39,9 +46,8 @@ GPS GPS_StructInit(void);
 
 /*** Functions ***/
 void GPS_ClearDataFrame(void);
-void GPS_Parse(GPS* GPS_Structure);
 void GPS_ParseGGA(GPS* GPS_Structure);
-void GPS_ProcessGGA(GPS* GPS_Structure);
+void GPS_ConvertToDecimalDegrees(GPS* GPS_Structure);
 
 
 

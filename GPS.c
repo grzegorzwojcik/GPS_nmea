@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include "GPS.h"
@@ -79,12 +81,16 @@ GPS GPS_StructInit(){
 
 	GPS GPS_Struct;
 	GPS_Struct.Altitude				= 0;
+
 	GPS_Struct.Latitude				= 0;
 	GPS_Struct.Latitude_degrees 	= 0;
 	GPS_Struct.Latitude_minutes 	= 0;
+	GPS_Struct.LatitudeUTM			= 0;
+
 	GPS_Struct.Longitude 			= 0;
 	GPS_Struct.Longitude_degrees	= 0;
 	GPS_Struct.Longitude_minutes	= 0;
+	GPS_Struct.LongitudeUTM			= 0;
 
 	GPS_Struct.Time_hours 			= 0;
 	GPS_Struct.Time_minutes 		= 0;
@@ -103,67 +109,6 @@ void GPS_ClearDataFrame(){
 }
 
 void GPS_ParseGGA(GPS* GPS_Structure){
-
-	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
-
-		static uint8_t i 	= 0;	//GPS_DataFrame[i]
-		static uint8_t j	= 0;	//LatitudeStr[j]
-		static uint8_t k	= 0;	//LongitudeStr[k]
-		static uint8_t l 	= 0;	//AltitudeStr[l]
-		static uint8_t m 	= 0;	//TimeStr[m]
-		uint8_t CommaCounter= 0;
-
-		char TimeStr[20]		= {0};	// Temporary char array
-		char LatitudeStr[20]	= {0};	// Temporary char array
-		char LongitudeStr[20]	= {0};	// Temporary char array
-		char AltitudeStr[20]	= {0};	// Temporary char array
-
-
-		for( i =0, j =0, k=0, l =0, m =0 ; i < 100; i++ ){
-			if( GPS_DataFrame[i] == ',' )
-				CommaCounter++;
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 1)){
-				TimeStr[m] = GPS_DataFrame[i];
-				m++;
-			}
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 2)){
-				LatitudeStr[j] = GPS_DataFrame[i];
-				j++;
-			}
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 4) ){
-				LongitudeStr[k] = GPS_DataFrame[i];
-				k++;
-			}
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 9) ){
-				AltitudeStr[l] = GPS_DataFrame[i];
-				l++;
-			}
-			if( CommaCounter == 2 ){
-				char TmpStr[2] = {TimeStr[0], TimeStr[1]};
-				GPS_Structure->Time_hours = atoi(TmpStr);
-				TmpStr[0] = TimeStr[2];
-				TmpStr[1] = TimeStr[3];
-				GPS_Structure->Time_minutes = atoi(TmpStr);
-				TmpStr[0] = TimeStr[4];
-				TmpStr[1] = TimeStr[5];
-				GPS_Structure->Time_seconds = atoi(TmpStr);
-			}
-			if( CommaCounter == 3 ){
-				GPS_Structure->Latitude = atoff(LatitudeStr);
-			}
-			if( CommaCounter == 5 ){
-				GPS_Structure->Longitude = atoff(LongitudeStr);
-			}
-			if( CommaCounter >= 10){
-				GPS_Structure->Altitude = atoff(AltitudeStr);
-				break;
-			}
-		}
-	}
-}
-
-
-void GPS_Parse(GPS* GPS_Structure){
 
 	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
 
@@ -251,6 +196,43 @@ void GPS_Parse(GPS* GPS_Structure){
 			}
 		}
 	}
+}
+
+void GPS_ConvertToDecimalDegrees(GPS* GPS_Structure){
+	float DeciLat = 0;
+	float DeciLon = 0;
+
+	DeciLat = GPS_Structure->Latitude_degrees + (0.016666667 * GPS_Structure->Latitude_minutes);
+	DeciLon = GPS_Structure->Longitude_degrees + (0.016666667 * GPS_Structure->Longitude_minutes);
+
+	float EifLat = 48.858222;
+	float EIfLon = 2.294444;
+
+	/* deg TO RADIANS */
+	DeciLat = DeciLat * PI/180;		// FI 1
+	DeciLon = DeciLon * PI/180;		// LAMBDA 1
+	EifLat = EifLat * PI/180;		// FI 2
+	EIfLon = EIfLon * PI/180;		// LAMBDA 2
+
+
+	float DeltaFi = EifLat - DeciLat;
+	float DeltaLambda = EIfLon - DeciLon;
+
+	float a = sinf(DeltaFi/2) * sinf(DeltaFi/2) + cosf(DeciLat) * cosf(EifLat) * sinf(DeltaLambda/2) * sinf(DeltaLambda/2);
+	float c = 2 * atan2f(sqrtf(a), sqrtf((1-a)));
+
+	float result = 0;
+	result = Earth_Radius * c;
+
+
+	/*		Eiffel's Tower
+			48d 51m 29.6s N = 48.858222 lat
+			2d  17m 40.2s E = 2.294444 lon
+
+			Struzika 12b/1
+			50.30117 lat
+			18.83687 lon
+	 */
 }
 
 

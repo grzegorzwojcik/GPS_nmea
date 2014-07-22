@@ -22,10 +22,11 @@ int main(void)
 
 	while(1)
 	{
-		//GPS_ParseGGA(GPS_DataFrame);
+
 		if( GPS_flag == 1 ){
-			GPS_Parse(&GPS_AAT);
+			GPS_ParseGGA(&GPS_AAT);
 			GPS_ClearDataFrame();
+			GPS_ConvertToDecimalDegrees(&GPS_AAT);
 			GPS_flag = 0;
 		}
 
