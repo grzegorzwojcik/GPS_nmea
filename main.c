@@ -19,14 +19,16 @@ int main(void)
 	GPS GPS_AAT = GPS_StructInit();
 	GPS GPS_UAV = GPS_StructInit();
 
+
 	while(1)
 	{
 		//GPS_ParseGGA(GPS_DataFrame);
 		if( GPS_flag == 1 ){
-			GPS_ParseGGA(&GPS_AAT);
+			GPS_Parse(&GPS_AAT);
 			GPS_ClearDataFrame();
 			GPS_flag = 0;
 		}
+
 	}
 }
 

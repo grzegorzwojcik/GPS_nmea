@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include "GPS.h"
@@ -77,12 +78,17 @@ GPS GPS_StructInit(){
 	GPS_ClearDataFrame();
 
 	GPS GPS_Struct;
-	GPS_Struct.Altitude = 0;
-	GPS_Struct.Latitude = 0;
-	GPS_Struct.Longitude = 0;
-	GPS_Struct.Time_hours = 0;
-	GPS_Struct.Time_minutes = 0;
-	GPS_Struct.Time_seconds = 0;
+	GPS_Struct.Altitude				= 0;
+	GPS_Struct.Latitude				= 0;
+	GPS_Struct.Latitude_degrees 	= 0;
+	GPS_Struct.Latitude_minutes 	= 0;
+	GPS_Struct.Longitude 			= 0;
+	GPS_Struct.Longitude_degrees	= 0;
+	GPS_Struct.Longitude_minutes	= 0;
+
+	GPS_Struct.Time_hours 			= 0;
+	GPS_Struct.Time_minutes 		= 0;
+	GPS_Struct.Time_seconds 		= 0;
 
 	return GPS_Struct;
 }
@@ -96,111 +102,6 @@ void GPS_ClearDataFrame(){
 	}
 }
 
-float GPS_ParseTime(){
-	static float ParsedData = 0;
-
-	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
-
-		static uint8_t i = 0;
-		static uint8_t j = 0;
-		char TempString[20] = {0};		// Temporary char array
-		uint8_t CommaCounter = 0;
-
-		for( i = 0, j = 0; i < 100; i++ ){
-			if( GPS_DataFrame[i] == ',' )
-				CommaCounter++;
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 1) ){
-				TempString[j] = GPS_DataFrame[i];
-				j++;
-			}
-			if( CommaCounter >= 2 ){
-				break;
-			}
-		}
-		ParsedData = atoff(TempString);	// ASCII to Float conversion
-	}
-	return ParsedData;
-}
-
-float GPS_ParseLatitude(){
-	static float ParsedData = 0;
-
-	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
-
-		static uint8_t i = 0;
-		static uint8_t j = 0;
-		char TempString[20] = {0};		// Temporary char array
-		uint8_t CommaCounter = 0;
-
-		for( i = 0, j = 0; i < 100; i++ ){
-			if( GPS_DataFrame[i] == ',' )
-				CommaCounter++;
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 2) ){
-				TempString[j] = GPS_DataFrame[i];
-				j++;
-			}
-			if( CommaCounter >= 3 ){
-				break;
-			}
-		}
-		ParsedData = atoff(TempString);	// ASCII to Float conversion
-	}
-	return ParsedData;
-}
-
-float GPS_ParseLongitude(){
-	static float ParsedData = 0;
-
-	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
-
-		static uint8_t i = 0;
-		static uint8_t j = 0;
-		char TempString[20] = {0};		// Temporary char array
-		uint8_t CommaCounter = 0;
-
-		for( i = 0, j = 0; i < 100; i++ ){
-			if( GPS_DataFrame[i] == ',' )
-				CommaCounter++;
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 4) ){
-				TempString[j] = GPS_DataFrame[i];
-				j++;
-			}
-			if( CommaCounter >= 5 ){
-				break;
-			}
-		}
-		ParsedData = atoff(TempString);	// ASCII to Float conversion
-	}
-	return ParsedData;
-}
-
-float GPS_ParseAltitude(){
-	static float ParsedData = 0;
-
-	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
-
-		static uint8_t i = 0;
-		static uint8_t j = 0;
-		char TempString[20] = {0};		// Temporary char array
-		uint8_t CommaCounter = 0;
-
-		for( i = 0, j = 0; i < 100; i++ ){
-			if( GPS_DataFrame[i] == ',' )
-				CommaCounter++;
-			if( (GPS_DataFrame[i] != ',') && (CommaCounter >= 9) ){
-				TempString[j] = GPS_DataFrame[i];
-				j++;
-			}
-			if( CommaCounter >= 10 ){
-				break;
-			}
-		}
-		ParsedData = atoff(TempString);	// ASCII to Float conversion
-	}
-	return ParsedData;
-}
-
-
 void GPS_ParseGGA(GPS* GPS_Structure){
 
 	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
@@ -212,10 +113,10 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 		static uint8_t m 	= 0;	//TimeStr[m]
 		uint8_t CommaCounter= 0;
 
-		char TimeStr[20] = {0};			// Temporary char array
-		char LatitudeStr[20]	= {0};		// Temporary char array
+		char TimeStr[20]		= {0};	// Temporary char array
+		char LatitudeStr[20]	= {0};	// Temporary char array
 		char LongitudeStr[20]	= {0};	// Temporary char array
-		char AltitudeStr[20]	= {0};		// Temporary char array
+		char AltitudeStr[20]	= {0};	// Temporary char array
 
 
 		for( i =0, j =0, k=0, l =0, m =0 ; i < 100; i++ ){
@@ -261,6 +162,96 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 	}
 }
 
+
+void GPS_Parse(GPS* GPS_Structure){
+
+	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
+
+		static uint8_t i 	= 0;	//GPS_DataFrame[i]
+		static uint8_t j	= 0;	//LatitudeStr[j]
+		static uint8_t k	= 0;	//LongitudeStr[k]
+		static uint8_t l 	= 0;	//AltitudeStr[l]
+		static uint8_t m 	= 0;	//TimeStr[m]
+		uint8_t CommaCounter= 0;
+
+		char TimeStr[20]		= {0};	// Temporary char array
+		char LatitudeStr[20]	= {0};	// Temporary char array
+		char LongitudeStr[20]	= {0};	// Temporary char array
+		char AltitudeStr[20]	= {0};	// Temporary char array
+
+
+		for( i =0, j =0, k=0, l =0, m =0 ; i < 100; i++ ){
+			if( GPS_DataFrame[i] == ',' )
+				CommaCounter++;
+
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 1)){
+				TimeStr[m] = GPS_DataFrame[i];
+				m++;
+			}
+
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 2)){
+				LatitudeStr[j] = GPS_DataFrame[i];
+				j++;
+			}
+
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 4) ){
+				LongitudeStr[k] = GPS_DataFrame[i];
+				k++;
+			}
+
+			if( (GPS_DataFrame[i] != ',') && (CommaCounter == 9) ){
+				AltitudeStr[l] = GPS_DataFrame[i];
+				l++;
+			}
+
+			if( CommaCounter == 2 ){
+				char TmpStr[2] = {TimeStr[0], TimeStr[1]};
+				GPS_Structure->Time_hours = atoi(TmpStr);
+				TmpStr[0] = TimeStr[2];
+				TmpStr[1] = TimeStr[3];
+				GPS_Structure->Time_minutes = atoi(TmpStr);
+				TmpStr[0] = TimeStr[4];
+				TmpStr[1] = TimeStr[5];
+				GPS_Structure->Time_seconds = atoi(TmpStr);
+			}
+
+			/* Parsowanie Latitude */
+			if( CommaCounter == 3 ){
+				char TmpLatD[2] = {LatitudeStr[0], LatitudeStr[1]};
+				GPS_Structure->Latitude_degrees = atoi(TmpLatD);
+
+				uint8_t tmp = strlen(LatitudeStr);
+				char TmpLatM[tmp-2];
+
+				for(j = 2; j < tmp; j++){
+					TmpLatM[j-2] = LatitudeStr[j];
+				}
+				GPS_Structure->Latitude_minutes = atoff(TmpLatM);
+				GPS_Structure->Latitude = atoff(LatitudeStr);
+			}
+
+			/* Parsowanie Longitude */
+			if( CommaCounter == 5 ){
+				char TmpLonD[2] = {LongitudeStr[1], LongitudeStr[2]};
+				GPS_Structure->Longitude_degrees = atoi(TmpLonD);
+
+				uint8_t tmp = strlen(LongitudeStr);
+				char TmpLonM[tmp-3];
+
+				for(k = 3; k < tmp; k++){
+					TmpLonM[k-3] = LongitudeStr[k];
+				}
+				GPS_Structure->Longitude_minutes = atoff(TmpLonM);
+				GPS_Structure->Longitude = atoff(LongitudeStr);
+			}
+
+			if( CommaCounter >= 10){
+				GPS_Structure->Altitude = atoff(AltitudeStr);
+				break;
+			}
+		}
+	}
+}
 
 
 				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/

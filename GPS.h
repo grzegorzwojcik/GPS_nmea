@@ -16,8 +16,13 @@ volatile uint8_t GPS_flag;				//GPS_flag is initialized with 0 during GPS_Variab
 void GPS_GPIOinit(void);
 void GPS_USARTinit(void);
 typedef struct{
-		float Latitude;		/* Szerokosc geograficzna */
-		float Longitude;	/* Dlugosc geograficzna */
+		uint8_t Longitude_degrees;	/* Szerokosc geograficzna DMM [DegreesMinutesMinutes] */
+		uint8_t Latitude_degrees;	/* Dlugosc geograficzna DMM [DegreesMinutesMinutes] */
+		float Longitude_minutes;
+		float Latitude_minutes;
+
+		float Latitude;
+		float Longitude;
 		float Altitude;		/* Above mean sea level [meters] */
 
 		/* UTC Time */
@@ -29,16 +34,15 @@ typedef struct{
 GPS GPS_StructInit(void);
 
 
-
+// 50 17.30118, 18 40.66723
 
 
 /*** Functions ***/
 void GPS_ClearDataFrame(void);
-float GPS_ParseTime();
-float GPS_ParseLatitude();
-float GPS_ParseLongitude();
-float GPS_ParseAltitude();
+void GPS_Parse(GPS* GPS_Structure);
 void GPS_ParseGGA(GPS* GPS_Structure);
+void GPS_ProcessGGA(GPS* GPS_Structure);
+
 
 
 
