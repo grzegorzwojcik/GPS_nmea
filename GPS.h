@@ -43,11 +43,9 @@ GPS GPS_StructInit(void);
 
 typedef struct{
 
-		float Angle_pitch;
-		float Angle_yaw;
+		float Angle_alfa;
+		float Angle_beta;
 		float DeltaAltitude;	/* UAV_alt - AAT_alt	Relative height	[meters] */
-		float DeltaLatitude;	/* AAT_lat - UAV_lat */
-		float DeltaLongitude;	/* AAT_lon - UAV_lon */
 		float Distance;			/* Distance between AAT and tracking object [meters] */
 
 

@@ -28,6 +28,7 @@ int main(void)
 			GPS_ParseGGA(&GPS_AAT);
 			GPS_ClearDataFrame();
 			//GPS_ConvertToDecimalDegrees(&GPS_AAT);
+			AT_Calculations(&GPS_AAT, &GPS_UAV, &AAT);
 			GPS_flag = 0;
 		}
 

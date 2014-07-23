@@ -102,11 +102,9 @@ GPS GPS_StructInit(){
 ATracker ATracker_StructInit(){
 
 	ATracker ATracker_Struct;
-	ATracker_Struct.Angle_pitch		 = 0;
-	ATracker_Struct.Angle_yaw		 = 0;
+	ATracker_Struct.Angle_alfa		 = 0;
+	ATracker_Struct.Angle_beta		 = 0;
 	ATracker_Struct.DeltaAltitude	 = 0;
-	ATracker_Struct.DeltaLatitude	 = 0;
-	ATracker_Struct.DeltaLongitude	 = 0;
 	ATracker_Struct.Distance		 = 0;
 
 	return ATracker_Struct;
@@ -252,23 +250,38 @@ void GPS_ConvertToDecimalDegrees(GPS* GPS_Structure){
 
 void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 	/* Degrees to radians */
-	static float AAT_LatRad = GPS_AAT->Latitude_decimal	 * PI_180;
-	static float AAT_LonRad = GPS_AAT->Longitude_decimal * PI_180;
-	static float UAV_LatRad = GPS_UAV->Latitude_decimal	 * PI_180;
-	static float UAV_LonRad = GPS_UAV->Longitude_decimal * PI_180;
+	float DeltaLatitude = 0;	/* AAT_lat - UAV_lat */
+	float DeltaLongitude = 0;	/* AAT_lon - UAV_lon */
+	float AAT_LatRad = GPS_AAT->Latitude_decimal	* PI_180;
+	float AAT_LonRad = GPS_AAT->Longitude_decimal	* PI_180;
+	float UAV_LatRad = GPS_UAV->Latitude_decimal	* PI_180;
+	float UAV_LonRad = GPS_UAV->Longitude_decimal 	* PI_180;
 
-	UAV_LatRad = 48.858222;
-	UAV_LonRad = 2.294444;
+	/* Tymczasowe wspolrzedne wiezy Eiffela */
+	UAV_LatRad = 48.858222 * PI_180;
+	UAV_LonRad = 2.294444 * PI_180;
 
-	ATracker_Structure->DeltaAltitude = GPS_UAV->Altitude - GPS_AAT->Altitude;
-	ATracker_Structure->DeltaLatitude = AAT_LatRad - UAV_LatRad;
-	ATracker_Structure->DeltaLongitude = AAT_LonRad - UAV_LonRad;
+	DeltaLatitude = AAT_LatRad - UAV_LatRad;
+	DeltaLongitude = AAT_LonRad - UAV_LonRad;
 
+	/* Haversine formula -distance between 2 points on a sphere */
 	float a = 0;
-	a = sinf(DeltaFi/2) * sinf(DeltaFi/2) + cosf(DeciLat) * cosf(EifLat) * sinf(DeltaLambda/2) * sinf(DeltaLambda/2);
+	a = sinf(DeltaLatitude/2) * sinf(DeltaLatitude/2) +
+		cosf(AAT_LatRad) * cosf(UAV_LatRad) *
+		sinf(DeltaLongitude/2) * sinf(DeltaLongitude/2);
+	float c = 0;
+	c = 2 * atan2f(sqrtf(a), sqrtf((1-a)));
 
+	ATracker_Structure->Distance = Earth_Radius * c * 1000;
 
-	//ATracker_Structure->Distance =
+	/* Tracked UAV current relative height */
+	ATracker_Structure->DeltaAltitude = GPS_UAV->Altitude - GPS_AAT->Altitude;
+
+	/* Alfa angle, atan2f result is in [rad], so by multiplying it by 57.2957795 we get degrees */
+	ATracker_Structure->Angle_alfa = (atan2f(DeltaLatitude,DeltaLongitude)) * 57.2957795;
+
+	/* Beta angle, atan2f result is in [rad], so by multiplying it by 57.2957795 we get degrees */
+	ATracker_Structure->Angle_beta = (atan2f(ATracker_Structure->DeltaAltitude,ATracker_Structure->Distance)) * 57.2957795;
 
 }
 
