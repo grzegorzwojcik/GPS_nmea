@@ -85,18 +85,31 @@ GPS GPS_StructInit(){
 	GPS_Struct.Latitude				= 0;
 	GPS_Struct.Latitude_degrees 	= 0;
 	GPS_Struct.Latitude_minutes 	= 0;
-	GPS_Struct.LatitudeUTM			= 0;
+	GPS_Struct.Latitude_decimal		= 0;
 
 	GPS_Struct.Longitude 			= 0;
 	GPS_Struct.Longitude_degrees	= 0;
 	GPS_Struct.Longitude_minutes	= 0;
-	GPS_Struct.LongitudeUTM			= 0;
+	GPS_Struct.Longitude_decimal	= 0;
 
 	GPS_Struct.Time_hours 			= 0;
 	GPS_Struct.Time_minutes 		= 0;
 	GPS_Struct.Time_seconds 		= 0;
 
 	return GPS_Struct;
+}
+
+ATracker ATracker_StructInit(){
+
+	ATracker ATracker_Struct;
+	ATracker_Struct.Angle_pitch		 = 0;
+	ATracker_Struct.Angle_yaw		 = 0;
+	ATracker_Struct.DeltaAltitude	 = 0;
+	ATracker_Struct.DeltaLatitude	 = 0;
+	ATracker_Struct.DeltaLongitude	 = 0;
+	ATracker_Struct.Distance		 = 0;
+
+	return ATracker_Struct;
 }
 
 
@@ -173,6 +186,7 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 				}
 				GPS_Structure->Latitude_minutes = atoff(TmpLatM);
 				GPS_Structure->Latitude = atoff(LatitudeStr);
+				GPS_Structure->Latitude_decimal = GPS_Structure->Latitude_degrees + (0.016666667 * GPS_Structure->Latitude_minutes);
 			}
 
 			/* Parsowanie Longitude */
@@ -188,6 +202,7 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 				}
 				GPS_Structure->Longitude_minutes = atoff(TmpLonM);
 				GPS_Structure->Longitude = atoff(LongitudeStr);
+				GPS_Structure->Longitude_decimal = GPS_Structure->Longitude_degrees + (0.016666667 * GPS_Structure->Longitude_minutes);
 			}
 
 			if( CommaCounter >= 10){
@@ -235,6 +250,27 @@ void GPS_ConvertToDecimalDegrees(GPS* GPS_Structure){
 	 */
 }
 
+void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
+	/* Degrees to radians */
+	static float AAT_LatRad = GPS_AAT->Latitude_decimal	 * PI_180;
+	static float AAT_LonRad = GPS_AAT->Longitude_decimal * PI_180;
+	static float UAV_LatRad = GPS_UAV->Latitude_decimal	 * PI_180;
+	static float UAV_LonRad = GPS_UAV->Longitude_decimal * PI_180;
+
+	UAV_LatRad = 48.858222;
+	UAV_LonRad = 2.294444;
+
+	ATracker_Structure->DeltaAltitude = GPS_UAV->Altitude - GPS_AAT->Altitude;
+	ATracker_Structure->DeltaLatitude = AAT_LatRad - UAV_LatRad;
+	ATracker_Structure->DeltaLongitude = AAT_LonRad - UAV_LonRad;
+
+	float a = 0;
+	a = sinf(DeltaFi/2) * sinf(DeltaFi/2) + cosf(DeciLat) * cosf(EifLat) * sinf(DeltaLambda/2) * sinf(DeltaLambda/2);
+
+
+	//ATracker_Structure->Distance =
+
+}
 
 				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
 void USART1_IRQHandler(void){
