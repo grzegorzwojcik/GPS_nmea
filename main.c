@@ -28,7 +28,6 @@ int main(void)
 		if( GPS_AATflag == 1 ){
 			GPS_AATParseGGA(&GPS_AAT);
 			GPS_ClearDataFrameAAT();
-			AT_Calculations(&GPS_AAT, &GPS_UAV, &AAT);
 			GPS_AATflag = 0;
 		}
 
@@ -40,7 +39,13 @@ int main(void)
 
 		/* calculate each 0.5s */
 		if( a >= 500 ){
+			if( (GPS_AAT.Latitude_decimal !=0) && (GPS_AAT.Longitude_decimal !=0) &&
+				(GPS_UAV.Latitude_decimal !=0) && (GPS_UAV.Longitude_decimal !=0)){
 
+			}
+			GPS_UAV.Latitude_decimal = 50.289959;
+			GPS_UAV.Longitude_decimal = 18.6770687;
+			AT_Calculations(&GPS_AAT, &GPS_UAV, &AAT);
 			a = 0;
 		}
 
