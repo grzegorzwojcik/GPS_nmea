@@ -61,7 +61,8 @@ ATracker ATracker_StructInit(void);
 /*** Functions ***/
 void GPS_ClearDataFrameAAT(void);
 void GPS_ClearDataFrameUAV(void);
-void GPS_ParseGGA(GPS* GPS_Structure);
+void GPS_AATParseGGA(GPS* GPS_Structure);
+void GPS_UAVParseGGA(GPS* GPS_Structure);
 void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure);
 
 

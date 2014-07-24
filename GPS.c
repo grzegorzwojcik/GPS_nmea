@@ -177,7 +177,7 @@ void GPS_ClearDataFrameUAV(){
 	}
 }
 
-void GPS_ParseGGA(GPS* GPS_Structure){
+void GPS_AATParseGGA(GPS* GPS_Structure){
 
 	if( (GPS_DataFrame[3] == 'G') && (GPS_DataFrame[4] == 'G') && (GPS_DataFrame[5] == 'A') ){
 
@@ -269,6 +269,98 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 	}
 }
 
+void GPS_UAVParseGGA(GPS* GPS_Structure){
+
+	if( (UAV_DataFrame[3] == 'G') && (UAV_DataFrame[4] == 'G') && (UAV_DataFrame[5] == 'A') ){
+
+		static uint8_t i 	= 0;	//UAV_DataFrame[i]
+		static uint8_t j	= 0;	//LatitudeStr[j]
+		static uint8_t k	= 0;	//LongitudeStr[k]
+		static uint8_t l 	= 0;	//AltitudeStr[l]
+		static uint8_t m 	= 0;	//TimeStr[m]
+		uint8_t CommaCounter= 0;
+
+		char TimeStr[20]		= {0};	// Temporary char array
+		char LatitudeStr[20]	= {0};	// Temporary char array
+		char LongitudeStr[20]	= {0};	// Temporary char array
+		char AltitudeStr[20]	= {0};	// Temporary char array
+
+
+		for( i =0, j =0, k=0, l =0, m =0 ; i < 100; i++ ){
+			if( UAV_DataFrame[i] == ',' )
+				CommaCounter++;
+
+			if( (UAV_DataFrame[i] != ',') && (CommaCounter == 1)){
+				TimeStr[m] = UAV_DataFrame[i];
+				m++;
+			}
+
+			if( (UAV_DataFrame[i] != ',') && (CommaCounter == 2)){
+				LatitudeStr[j] = UAV_DataFrame[i];
+				j++;
+			}
+
+			if( (UAV_DataFrame[i] != ',') && (CommaCounter == 4) ){
+				LongitudeStr[k] = UAV_DataFrame[i];
+				k++;
+			}
+
+			if( (UAV_DataFrame[i] != ',') && (CommaCounter == 9) ){
+				AltitudeStr[l] = UAV_DataFrame[i];
+				l++;
+			}
+
+			if( CommaCounter == 2 ){
+				char TmpStr[2] = {TimeStr[0], TimeStr[1]};
+				GPS_Structure->Time_hours = atoi(TmpStr);
+				TmpStr[0] = TimeStr[2];
+				TmpStr[1] = TimeStr[3];
+				GPS_Structure->Time_minutes = atoi(TmpStr);
+				TmpStr[0] = TimeStr[4];
+				TmpStr[1] = TimeStr[5];
+				GPS_Structure->Time_seconds = atoi(TmpStr);
+			}
+
+			/* Parsowanie Latitude */
+			if( CommaCounter == 3 ){
+				char TmpLatD[2] = {LatitudeStr[0], LatitudeStr[1]};
+				GPS_Structure->Latitude_degrees = atoi(TmpLatD);
+
+				uint8_t tmp = strlen(LatitudeStr);
+				char TmpLatM[tmp-2];
+
+				for(j = 2; j < tmp; j++){
+					TmpLatM[j-2] = LatitudeStr[j];
+				}
+				GPS_Structure->Latitude_minutes = atoff(TmpLatM);
+				GPS_Structure->Latitude = atoff(LatitudeStr);
+				GPS_Structure->Latitude_decimal = GPS_Structure->Latitude_degrees + (0.016666667 * GPS_Structure->Latitude_minutes);
+			}
+
+			/* Parsowanie Longitude */
+			if( CommaCounter == 5 ){
+				char TmpLonD[2] = {LongitudeStr[1], LongitudeStr[2]};
+				GPS_Structure->Longitude_degrees = atoi(TmpLonD);
+
+				uint8_t tmp = strlen(LongitudeStr);
+				char TmpLonM[tmp-3];
+
+				for(k = 3; k < tmp; k++){
+					TmpLonM[k-3] = LongitudeStr[k];
+				}
+				GPS_Structure->Longitude_minutes = atoff(TmpLonM);
+				GPS_Structure->Longitude = atoff(LongitudeStr);
+				GPS_Structure->Longitude_decimal = GPS_Structure->Longitude_degrees + (0.016666667 * GPS_Structure->Longitude_minutes);
+			}
+
+			if( CommaCounter >= 10){
+				GPS_Structure->Altitude = atoff(AltitudeStr);
+				break;
+			}
+		}
+	}
+}
+
 void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 	/* Degrees to radians */
 	float DeltaLatitude = 0;	/* AAT_lat - UAV_lat */
@@ -279,8 +371,8 @@ void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 	float UAV_LonRad = GPS_UAV->Longitude_decimal 	* PI_180;
 
 	/* Tymczasowe wspolrzedne wiezy Eiffela */
-	UAV_LatRad = 48.858222 * PI_180;
-	UAV_LonRad = 2.294444 * PI_180;
+	// = 48.858222 * PI_180;
+	//UAV_LonRad = 2.294444 * PI_180;
 
 	DeltaLatitude = AAT_LatRad - UAV_LatRad;
 	DeltaLongitude = AAT_LonRad - UAV_LonRad;

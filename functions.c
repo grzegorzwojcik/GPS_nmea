@@ -14,10 +14,12 @@ void SysTick_Handler(void)
 {
 	a++;
 
+	/*
 	if(a >= 500){
 		//GPIO_ToggleBits(GPIOD, GPIO_Pin_12 | GPIO_Pin_13);
 		a = 0;
 	}
+	*/
 }
 
 void GPIO_initialization(void){

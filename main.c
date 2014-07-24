@@ -26,16 +26,22 @@ int main(void)
 	{
 
 		if( GPS_AATflag == 1 ){
-			GPS_ParseGGA(&GPS_AAT);
+			GPS_AATParseGGA(&GPS_AAT);
 			GPS_ClearDataFrameAAT();
 			AT_Calculations(&GPS_AAT, &GPS_UAV, &AAT);
 			GPS_AATflag = 0;
 		}
 
 		if( GPS_UAVflag == 1 ){
-			GPS_ParseGGA(&GPS_UAV);
+			GPS_UAVParseGGA(&GPS_UAV);
 			GPS_ClearDataFrameUAV();
 			GPS_UAVflag = 0;
+		}
+
+		/* calculate each 0.5s */
+		if( a >= 500 ){
+
+			a = 0;
 		}
 
 	}
