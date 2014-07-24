@@ -23,6 +23,7 @@ void GPS_GPIOinit(void){
 
 	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOB, ENABLE );	//Enabling peripherial clock for PORTB
 
+
 	GPIO_InitTypeDef GPIO_InitStruct;
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
@@ -31,13 +32,28 @@ void GPS_GPIOinit(void){
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	/* Connecting the RX and TX pins to their AlternateFunctions */
+	/* STM32F407VGT6
+	 * USART6:
+	 * TX: PC6
+	 * RX: PC7 */
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);
+
+	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOC, ENABLE );	//Enabling peripherial clock for PORTC
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	/* Connecting the RX and TX pins to their AlternateFunctions */
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_USART6);
 }
 
 /* GPS_USARTinit function should be executed after GPS_GPIOinit function */
-void GPS_USARTinit(void){
+void GPS_USART1init(void){
 	/* STM32F407VGT6
 	 * USART1:
 	 * TX: PB6
@@ -71,13 +87,48 @@ void GPS_USARTinit(void){
 	USART_Cmd(USART1, ENABLE);	// Enabling the complete USART1 peripherial
 }
 
+void GPS_USART6init(void){
+	/* STM32F407VGT6
+	 * USART1:
+	 * TX: PC6
+	 * RX: PC7 */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE); 	// Enabling peripherial clock for USART1
+															// Note that only USART1 and USART6 are connected
+															// to APB2
+	USART_InitTypeDef USART_InitStruct;
+	USART_InitStruct.USART_BaudRate = 9600;
+	USART_InitStruct.USART_WordLength = USART_WordLength_8b;
+	USART_InitStruct.USART_StopBits = USART_StopBits_1;
+	USART_InitStruct.USART_Parity = USART_Parity_No;
+	USART_InitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStruct.USART_Mode = USART_Mode_Tx | USART_Mode_Rx; 	// we want to enable the transmitter and the receiver
+	USART_Init(USART6, &USART_InitStruct);
+
+	/* Here the USART1 receive interrupt is enabled
+	 * and the interrupt controller is configured
+	 * to jump to the USART1_IRQHandler() function
+	 * if the USART1 receive interrupt occurs */
+
+	USART_ITConfig(USART6, USART_IT_RXNE, ENABLE); 			// enable the USART1 receive interrupt
+
+	NVIC_InitTypeDef NVIC_InitStruct;
+	NVIC_InitStruct.NVIC_IRQChannel = USART6_IRQn;		 // we want to configure the USART1 interrupts
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0;// this sets the priority group of the USART1 interrupts
+	NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0;		 // this sets the subpriority inside the group
+	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;			 // the USART1 interrupts are globally enabled
+	NVIC_Init(&NVIC_InitStruct);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
+
+	USART_Cmd(USART6, ENABLE);	// Enabling the complete USART1 peripherial
+}
 
 GPS GPS_StructInit(){
 	/* Structure initialization */
 	/* THis function returns GPS structure with basic values, initializes GPS_flag with 0,
 	 * and initializes(clears) volatile GPS_DataFrame*/
-	GPS_flag = 0;
-	GPS_ClearDataFrame();
+	GPS_AATflag = 0;
+	GPS_UAVflag = 0;
+	GPS_ClearDataFrameAAT();
+	GPS_ClearDataFrameUAV();
 
 	GPS GPS_Struct;
 	GPS_Struct.Altitude				= 0;
@@ -112,10 +163,17 @@ ATracker ATracker_StructInit(){
 
 
 								/*** Functions ***/
-void GPS_ClearDataFrame(){
+void GPS_ClearDataFrameAAT(){
 	static uint8_t i = 0;
 	for( i = 0; i < 100; i++){
 		GPS_DataFrame[i] = 0;
+	}
+}
+
+void GPS_ClearDataFrameUAV(){
+	static uint8_t i = 0;
+	for( i = 0; i < 100; i++){
+		UAV_DataFrame[i] = 0;
 	}
 }
 
@@ -211,43 +269,6 @@ void GPS_ParseGGA(GPS* GPS_Structure){
 	}
 }
 
-void GPS_ConvertToDecimalDegrees(GPS* GPS_Structure){
-	float DeciLat = 0;
-	float DeciLon = 0;
-
-	DeciLat = GPS_Structure->Latitude_degrees + (0.016666667 * GPS_Structure->Latitude_minutes);
-	DeciLon = GPS_Structure->Longitude_degrees + (0.016666667 * GPS_Structure->Longitude_minutes);
-
-	float EifLat = 48.858222;
-	float EIfLon = 2.294444;
-
-	/* deg TO RADIANS */
-	DeciLat = DeciLat * PI/180;		// FI 1
-	DeciLon = DeciLon * PI/180;		// LAMBDA 1
-	EifLat = EifLat * PI/180;		// FI 2
-	EIfLon = EIfLon * PI/180;		// LAMBDA 2
-
-
-	float DeltaFi = EifLat - DeciLat;
-	float DeltaLambda = EIfLon - DeciLon;
-
-	float a = sinf(DeltaFi/2) * sinf(DeltaFi/2) + cosf(DeciLat) * cosf(EifLat) * sinf(DeltaLambda/2) * sinf(DeltaLambda/2);
-	float c = 2 * atan2f(sqrtf(a), sqrtf((1-a)));
-
-	float result = 0;
-	result = Earth_Radius * c;
-
-
-	/*		Eiffel's Tower
-			48d 51m 29.6s N = 48.858222 lat
-			2d  17m 40.2s E = 2.294444 lon
-
-			Struzika 12b/1
-			50.30117 lat
-			18.83687 lon
-	 */
-}
-
 void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 	/* Degrees to radians */
 	float DeltaLatitude = 0;	/* AAT_lat - UAV_lat */
@@ -283,6 +304,14 @@ void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 	/* Beta angle, atan2f result is in [rad], so by multiplying it by 57.2957795 we get degrees */
 	ATracker_Structure->Angle_beta = (atan2f(ATracker_Structure->DeltaAltitude,ATracker_Structure->Distance)) * 57.2957795;
 
+	/*		Eiffel's Tower
+			48d 51m 29.6s N = 48.858222 lat
+			2d  17m 40.2s E = 2.294444 lon
+
+			Struzika 12b/1
+			50.30117 lat
+			18.83687 lon
+	 */
 }
 
 				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
@@ -293,7 +322,7 @@ void USART1_IRQHandler(void){
 		static uint8_t cnt = 0; 	// String length
 		char t = USART1->DR; 		// Received character from USART1 data register is saved in t
 
-		if( (GPS_flag == 0) ){
+		if( (GPS_AATflag == 0) ){
 			if( t == '$' ){
 				cnt = 0;
 				GPS_DataFrame[cnt] = t;
@@ -304,9 +333,36 @@ void USART1_IRQHandler(void){
 				cnt++;
 				if( t == 0x0D ){
 					cnt = 0;
-					GPS_flag = 1;
+					GPS_AATflag = 1;
 				}
 			}
 		}
 	}
 }
+
+/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
+void USART6_IRQHandler(void){
+
+	if( USART_GetITStatus(USART6, USART_IT_RXNE) ){
+
+		static uint8_t cnt = 0; 	// String length
+		char t = USART6->DR; 		// Received character from USART1 data register is saved in t
+
+		if( (GPS_UAVflag == 0) ){
+			if( t == '$' ){
+			cnt = 0;
+			UAV_DataFrame[cnt] = t;
+			cnt++;
+			}
+			if( (t != '$') && (UAV_DataFrame[0] == '$') ){
+				UAV_DataFrame[cnt] = t;
+				cnt++;
+				if( t == 0x0D ){
+					cnt = 0;
+					GPS_UAVflag = 1;
+				}
+			}
+		}
+	}
+}
+

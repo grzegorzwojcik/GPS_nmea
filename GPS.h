@@ -13,12 +13,15 @@
 #define Earth_Radius 6371			/* Mean Earth radius [kilometers] */
 
 /*** Volatile variables ***/
-volatile char GPS_DataFrame[100];		//Should start with '$', end with 0x0A
-volatile uint8_t GPS_flag;				//GPS_flag is initialized with 0 during GPS_VariablesInit() execution
+volatile char GPS_DataFrame[100];		//AAT GPS: Should start with '$', end with 0x0A
+volatile char UAV_DataFrame[100];		//UAV GPS: Should start with '$', end with 0x0A
+volatile uint8_t GPS_AATflag;			//GPS_AATflag is set to 0 during GPS_VariablesInit() execution
+volatile uint8_t GPS_UAVflag;			//GPS_UAVflag is set to 0 during GPS_VariablesInit() execution
 
 /*** Initialization functions and structures***/
 void GPS_GPIOinit(void);
-void GPS_USARTinit(void);
+void GPS_USART1init(void);
+void GPS_USART6init(void);
 typedef struct{
 
 		float Altitude;		/* Above mean sea level [meters] */
@@ -56,9 +59,9 @@ ATracker ATracker_StructInit(void);
 
 
 /*** Functions ***/
-void GPS_ClearDataFrame(void);
+void GPS_ClearDataFrameAAT(void);
+void GPS_ClearDataFrameUAV(void);
 void GPS_ParseGGA(GPS* GPS_Structure);
-void GPS_ConvertToDecimalDegrees(GPS* GPS_Structure);
 void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure);
 
 

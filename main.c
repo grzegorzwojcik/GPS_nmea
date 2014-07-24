@@ -13,7 +13,8 @@ int main(void)
 
 	/* Initialization functions */
 	GPS_GPIOinit();
-	GPS_USARTinit();
+	GPS_USART1init();
+	GPS_USART6init();
 
 	/* Initialization -structures */
 	GPS GPS_AAT = GPS_StructInit();
@@ -24,12 +25,17 @@ int main(void)
 	while(1)
 	{
 
-		if( GPS_flag == 1 ){
+		if( GPS_AATflag == 1 ){
 			GPS_ParseGGA(&GPS_AAT);
-			GPS_ClearDataFrame();
-			//GPS_ConvertToDecimalDegrees(&GPS_AAT);
+			GPS_ClearDataFrameAAT();
 			AT_Calculations(&GPS_AAT, &GPS_UAV, &AAT);
-			GPS_flag = 0;
+			GPS_AATflag = 0;
+		}
+
+		if( GPS_UAVflag == 1 ){
+			GPS_ParseGGA(&GPS_UAV);
+			GPS_ClearDataFrameUAV();
+			GPS_UAVflag = 0;
 		}
 
 	}
