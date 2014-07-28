@@ -370,10 +370,6 @@ void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 	float UAV_LatRad = GPS_UAV->Latitude_decimal	* PI_180;
 	float UAV_LonRad = GPS_UAV->Longitude_decimal 	* PI_180;
 
-	/* Tymczasowe wspolrzedne wiezy Eiffela */
-	// = 48.858222 * PI_180;
-	//UAV_LonRad = 2.294444 * PI_180;
-
 	DeltaLatitude = AAT_LatRad - UAV_LatRad;
 	DeltaLongitude = AAT_LonRad - UAV_LonRad;
 
@@ -395,15 +391,6 @@ void AT_Calculations(GPS* GPS_AAT, GPS* GPS_UAV, ATracker* ATracker_Structure){
 
 	/* Beta angle, atan2f result is in [rad], so by multiplying it by 57.2957795 we get degrees */
 	ATracker_Structure->Angle_beta = (atan2f(ATracker_Structure->DeltaAltitude,ATracker_Structure->Distance)) * 57.2957795;
-
-	/*		Eiffel's Tower
-			48d 51m 29.6s N = 48.858222 lat
-			2d  17m 40.2s E = 2.294444 lon
-
-			Struzika 12b/1
-			50.30117 lat
-			18.83687 lon
-	 */
 }
 
 				/*** Interrupt Request Handler (IRQ) for ALL USART1 interrupts ***/
